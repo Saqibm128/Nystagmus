@@ -2,6 +2,7 @@ package essyselves.bme3110.gatech.nystagmus;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -32,6 +33,7 @@ public class WelcomeActivity extends AppCompatActivity implements SurfaceHolder.
     List<Surface> surfaces;
     int numCameras;
     int currentCam;
+    CameraDevice cam;
 
 
     @Override
@@ -112,15 +114,17 @@ public class WelcomeActivity extends AppCompatActivity implements SurfaceHolder.
                     } catch (CameraAccessException e) {
                         e.printStackTrace();
                     }
+                    cam = cameraDevice;
                 }
 
                 @Override
                 public void onDisconnected(@NonNull CameraDevice cameraDevice) {
-
+                    cameraDevice.close();
                 }
 
                 @Override
                 public void onClosed(@NonNull CameraDevice camera) {
+
                 }
 
                 @Override
@@ -140,6 +144,19 @@ public class WelcomeActivity extends AppCompatActivity implements SurfaceHolder.
                 currentCam = (currentCam + 1) % numCameras;
             }
         });
+        Button confirmCamera = (Button) findViewById(R.id.confirmCameraButton);
+        confirmCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    Intent i = new Intent(getApplicationContext(), VideoActivity.class);
+                    i.putExtra("CameraChoice", cameraManager.getCameraIdList()[currentCam]);
+                    startActivity(i);
+                } catch (CameraAccessException cae) {
+                    Log.e("CameraAccessException", cae.getMessage());
+                }
+            }
+        });
     }
 
     @Override
@@ -148,6 +165,7 @@ public class WelcomeActivity extends AppCompatActivity implements SurfaceHolder.
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+        cam.close();
 
     }
 }
